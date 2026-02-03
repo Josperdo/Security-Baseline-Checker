@@ -1,4 +1,4 @@
-#!/bin/bash
+﻿#!/bin/bash
 
 echo "=== Security Baseline Check ==="
 echo ""
