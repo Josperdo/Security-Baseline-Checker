@@ -3,6 +3,7 @@
 *.swo
 *~
 .vscode/
+Claude.md
 
 # OS files
 .DS_Store
