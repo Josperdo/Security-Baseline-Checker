@@ -12,8 +12,10 @@ function check_ssh_config() {
         echo "WARNING: PermitRootLogin is currently set to yes. To enhance security, change this setting to no in /etc/ssh/sshd_config and restart the SSH service."
     elif grep -q "^PermitRootLogin prohibit-password" /etc/ssh/sshd_config; then
         echo "WARNING: PermitRootLogin is currently set to prohibit-password. To enhance security, change this setting to no in /etc/ssh/sshd_config and restart the SSH service."
-    else
+    elif grep -q "^PermitRootLogin no" /etc/ssh/sshd_config; then
         echo "SSH configuration secured: PermitRootLogin is currently set to a secure value ('no' or 'prohibit-password')."
+    else
+        echo "INFO: PermitRootLogin is not explicitly set. Default value is in use. Verify the default for your SSH version."
     fi
     echo ""
 }
