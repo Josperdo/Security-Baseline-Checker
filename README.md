@@ -8,14 +8,23 @@ This script performs automated checks against common security configurations to 
 
 ## Current Checks
 
+### Privilege Escalation Vectors
 - Enumerates users with `sudo` group membership
 - Enumerates users with `wheel` group membership (RHEL/CentOS-based distributions)
+- Detects files with Linux capabilities that may present security risks (`getcap`)
+
+### SSH Configuration Audit
+- `PermitRootLogin` — checks if root login is explicitly disabled
+- `PasswordAuthentication` — checks if password-based auth is disabled in favor of key-based auth
+- `PubkeyAuthentication` — verifies public key authentication is enabled
+- Reports whether each setting is explicitly configured or using defaults
 
 ## Requirements
 
 - Linux-based operating system
 - Bash 4.0+
-- Read access to `/etc/group`
+- Read access to `/etc/group` and `/etc/ssh/sshd_config`
+- Root privileges recommended for full capabilities check
 
 ## Usage
 
@@ -24,14 +33,17 @@ chmod +x security_checker.sh
 ./security_checker.sh
 ```
 
-## Planned Features
+## Roadmap
 
-- SSH configuration audit (root login, password authentication, key-based auth)
-- Firewall rule validation (iptables/ufw)
-- File permission checks on sensitive directories
-- Password policy review
-- Open port enumeration
-- Unattended upgrade / patch status check
+- [x] Sudo/wheel group enumeration
+- [x] File capabilities detection (`getcap`)
+- [x] SSH configuration audit (`PermitRootLogin`, `PasswordAuthentication`, `PubkeyAuthentication`)
+- [ ] Additional SSH checks (`PermitEmptyPasswords`, protocol version)
+- [ ] File permission checks on sensitive files (`/etc/shadow`, `/etc/passwd`, `/etc/sudoers`)
+- [ ] Firewall rule validation (iptables/ufw)
+- [ ] Password policy review
+- [ ] Open port enumeration
+- [ ] Unattended upgrade / patch status check
 
 ## License
 
