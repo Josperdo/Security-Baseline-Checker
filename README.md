@@ -38,7 +38,7 @@ chmod +x security_checker.sh
 - [x] Sudo/wheel group enumeration
 - [x] File capabilities detection (`getcap`)
 - [x] SSH configuration audit (`PermitRootLogin`, `PasswordAuthentication`, `PubkeyAuthentication`)
-- [ ] Additional SSH checks (`PermitEmptyPasswords`, protocol version)
+- [x] Additional SSH checks (`PermitEmptyPasswords`, protocol version)
 - [ ] File permission checks on sensitive files (`/etc/shadow`, `/etc/passwd`, `/etc/sudoers`)
 - [ ] Firewall rule validation (iptables/ufw)
 - [ ] Password policy review

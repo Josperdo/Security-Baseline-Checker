@@ -30,6 +30,16 @@ function check_ssh_config() {
     fi
     echo ""
 
+    # Check for PermitEmptyPasswords
+    if grep -q "^PermitEmptyPasswords yes" /etc/ssh/sshd_config; then
+        echo "WARNING: PermitEmptyPasswords is currently set to yes. To enhance security, change this setting to no in /etc/ssh/sshd_config and restart the SSH service."
+    elif grep -q "^PermitEmptyPasswords no" /etc/ssh/sshd_config; then
+        echo "SSH Configuration secured: PermitEmptyPasswords is currently set to no."
+    else
+        echo "INFO: PermitEmptyPasswords is not explicitly set. Default value is in use. Verify."
+    fi
+    echo ""
+
     # Check for Pubkey Authentication
     if grep -q "^PubkeyAuthentication yes" /etc/ssh/sshd_config; then
         echo "SSH Configuration secured: PubkeyAuthentication is currently set to yes."
