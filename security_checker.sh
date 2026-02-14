@@ -112,11 +112,55 @@ function check_open_ports() {
     fi
 }
 
+function check_password_policy() {
+    echo "Checking password policy settings..."
+    echo ""
+
+    # Check for password aging and complexity settings
+    max_days=$(grep "^PASS_MAX_DAYS" /etc/login.defs | awk '{print $2}' || true)
+    min_days=$(grep "^PASS_MIN_DAYS" /etc/login.defs | awk '{print $2}' || true)
+    min_len=$(grep "^PASS_MIN_LEN" /etc/login.defs | awk '{print $2}' || true)
+    warn_age=$(grep "^PASS_WARN_AGE" /etc/login.defs | awk '{print $2}' || true)
+
+    if [ "$max_days" -gt 90 ]; then
+        echo "WARNING: PASS_MAX_DAYS is set to $max_days. Consider setting it to 90 or less for better security."
+    elif [ "$max_days" -gt 60 ]; then
+        echo "INFO: PASS_MAX_DAYS is set to $max_days. Consider setting it to 60 or less for enhanced security."
+    else
+        echo "OK: PASS_MAX_DAYS is set to $max_days (90 days or less)."
+    fi
+    echo ""
+
+    if [ "$min_days" -eq 0 ]; then
+        echo "WARNING: PASS_MIN_DAYS is set to $min_days. Set to 1 or more to prevent password cycling."
+    elif [ "$min_days" -lt 14 ]; then
+        echo "INFO: PASS_MIN_DAYS is set to $min_days. Consider setting it to 14 or more for better security."
+    else
+        echo "OK: PASS_MIN_DAYS is set to $min_days (14 days or more)."
+    fi
+    echo ""
+
+    if [ "$min_len" -lt 8 ]; then
+        echo "WARNING: PASS_MIN_LEN is set to $min_len. Consider setting it to 8 or more for stronger passwords."
+    else
+        echo "OK: PASS_MIN_LEN is set to $min_len (8 or more)."
+    fi
+    echo ""
+
+    if [ "$warn_age" -lt 7 ]; then
+        echo "WARNING: PASS_WARN_AGE is set to $warn_age. Consider setting it to 7 or more for better user experience."
+    else
+        echo "OK: PASS_WARN_AGE is set to $warn_age (adequate warning period)."
+    fi
+    echo ""
+}
+
 check_users
 check_ssh_config
 check_capabilities
 check_file_permissions
 check_open_ports
+check_password_policy
 
 echo ""
 echo "Check complete."

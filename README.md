@@ -41,8 +41,8 @@ chmod +x security_checker.sh
 - [x] Additional SSH checks (`PermitEmptyPasswords`, protocol version)
 - [x] File permission checks on sensitive files (`/etc/shadow`, `/etc/passwd`, `/etc/sudoers`)
 - [x] Open port enumeration
+- [x] Password policy review
 - [ ] Firewall rule validation (iptables/ufw)
-- [ ] Password policy review
 - [ ] Unattended upgrade / patch status check
 
 ## License
