@@ -42,7 +42,7 @@ chmod +x security_checker.sh
 - [x] File permission checks on sensitive files (`/etc/shadow`, `/etc/passwd`, `/etc/sudoers`)
 - [x] Open port enumeration
 - [x] Password policy review
-- [ ] Firewall rule validation (iptables/ufw)
+- [x] Firewall rule validation (iptables/ufw)
 - [ ] Unattended upgrade / patch status check
 
 ## License
