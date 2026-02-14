@@ -39,7 +39,7 @@ chmod +x security_checker.sh
 - [x] File capabilities detection (`getcap`)
 - [x] SSH configuration audit (`PermitRootLogin`, `PasswordAuthentication`, `PubkeyAuthentication`)
 - [x] Additional SSH checks (`PermitEmptyPasswords`, protocol version)
-- [ ] File permission checks on sensitive files (`/etc/shadow`, `/etc/passwd`, `/etc/sudoers`)
+- [x] File permission checks on sensitive files (`/etc/shadow`, `/etc/passwd`, `/etc/sudoers`)
 - [ ] Firewall rule validation (iptables/ufw)
 - [ ] Password policy review
 - [ ] Open port enumeration

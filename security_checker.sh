@@ -74,9 +74,34 @@ function check_users() {
     echo ""
 }
 
+function check_file_permissions() {
+    echo "Checking for files with weak or improper permissions..."
+    echo ""
+
+    # Check permissions of critical files
+    for file in /etc/passwd /etc/shadow /etc/group; do
+        if [ -e "$file" ]; then
+            perms=$(stat -c "%a %G %U" "$file")
+            if [[ "$perms" != "644 root root" && "$file" == "/etc/passwd" ]]; then
+                echo "WARNING: $file has permissions $perms. It should be 644 and owned by root:root."
+            elif [[ "$perms" != "640 shadow root" && "$file" == "/etc/shadow" ]]; then
+                echo "WARNING: $file has permissions $perms. It should be 640 and owned by shadow:root."
+            elif [[ "$perms" != "644 root root" && "$file" == "/etc/group" ]]; then
+                echo "WARNING: $file has permissions $perms. It should be 644 and owned by root:root."
+            else
+                echo "OK: $file has secure permissions ($perms)."
+            fi
+        else
+            echo "WARNING: $file does not exist."
+        fi
+    done
+    echo ""
+}
+
 check_users
 check_ssh_config
 check_capabilities
+check_file_permissions
 
 echo ""
 echo "Check complete."
