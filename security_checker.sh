@@ -1,8 +1,64 @@
-﻿#!/bin/bash
+#!/bin/bash
 set -euo pipefail
 
 echo "=== Security Baseline Check ==="
 echo ""
+
+function check_users() {
+    echo "Checking for users with sudo privileges..."
+    echo ""
+
+    # Get users in sudo group
+    grep '^sudo:' /etc/group | cut -d: -f4 || true
+    echo ""
+
+    # Get users in wheel group (some distros use this)
+    grep '^wheel:' /etc/group | cut -d: -f4 2>/dev/null || true
+    echo ""
+}
+
+function check_password_policy() {
+    echo "Checking password policy settings..."
+    echo ""
+
+    # Check for password aging and complexity settings
+    max_days=$(grep "^PASS_MAX_DAYS" /etc/login.defs | awk '{print $2}' || true)
+    min_days=$(grep "^PASS_MIN_DAYS" /etc/login.defs | awk '{print $2}' || true)
+    min_len=$(grep "^PASS_MIN_LEN" /etc/login.defs | awk '{print $2}' || true)
+    warn_age=$(grep "^PASS_WARN_AGE" /etc/login.defs | awk '{print $2}' || true)
+
+    if [ "$max_days" -gt 90 ]; then
+        echo "WARNING: PASS_MAX_DAYS is set to $max_days. Consider setting it to 90 or less for better security."
+    elif [ "$max_days" -gt 60 ]; then
+        echo "INFO: PASS_MAX_DAYS is set to $max_days. Consider setting it to 60 or less for enhanced security."
+    else
+        echo "OK: PASS_MAX_DAYS is set to $max_days (90 days or less)."
+    fi
+    echo ""
+
+    if [ "$min_days" -eq 0 ]; then
+        echo "WARNING: PASS_MIN_DAYS is set to $min_days. Set to 1 or more to prevent password cycling."
+    elif [ "$min_days" -lt 14 ]; then
+        echo "INFO: PASS_MIN_DAYS is set to $min_days. Consider setting it to 14 or more for better security."
+    else
+        echo "OK: PASS_MIN_DAYS is set to $min_days (14 days or more)."
+    fi
+    echo ""
+
+    if [ "$min_len" -lt 8 ]; then
+        echo "WARNING: PASS_MIN_LEN is set to $min_len. Consider setting it to 8 or more for stronger passwords."
+    else
+        echo "OK: PASS_MIN_LEN is set to $min_len (8 or more)."
+    fi
+    echo ""
+
+    if [ "$warn_age" -lt 7 ]; then
+        echo "WARNING: PASS_WARN_AGE is set to $warn_age. Consider setting it to 7 or more for better user experience."
+    else
+        echo "OK: PASS_WARN_AGE is set to $warn_age (adequate warning period)."
+    fi
+    echo ""
+}
 
 function check_ssh_config() {
     echo "Checking SSH configuration for potential security threat..."
@@ -51,29 +107,6 @@ function check_ssh_config() {
     echo ""
 }
 
-function check_capabilities() {
-    # Check for files with potentially risky capabilities
-    echo "Checking for files with capabilities presenting potential risks..."
-    echo ""
-    # List files with capabilities (requires root privileges)
-    getcap -r / 2>/dev/null || true
-    echo ""
-    
-}
-
-function check_users() {
-    echo "Checking for users with sudo privileges..."
-    echo ""
-
-    # Get users in sudo group
-    grep '^sudo:' /etc/group | cut -d: -f4 || true
-    echo ""
-
-    # Get users in wheel group (some distros use this)
-    grep '^wheel:' /etc/group | cut -d: -f4 2>/dev/null || true
-    echo ""
-}
-
 function check_file_permissions() {
     echo "Checking for files with weak or improper permissions..."
     echo ""
@@ -100,6 +133,16 @@ function check_file_permissions() {
     echo ""
 }
 
+function check_capabilities() {
+    # Check for files with potentially risky capabilities
+    echo "Checking for files with capabilities presenting potential risks..."
+    echo ""
+    # List files with capabilities (requires root privileges)
+    getcap -r / 2>/dev/null || true
+    echo ""
+
+}
+
 function check_open_ports() {
     echo "Checking for open ports and associated services..."
     echo ""
@@ -110,49 +153,6 @@ function check_open_ports() {
     else
         echo "No listening ports detected."
     fi
-}
-
-function check_password_policy() {
-    echo "Checking password policy settings..."
-    echo ""
-
-    # Check for password aging and complexity settings
-    max_days=$(grep "^PASS_MAX_DAYS" /etc/login.defs | awk '{print $2}' || true)
-    min_days=$(grep "^PASS_MIN_DAYS" /etc/login.defs | awk '{print $2}' || true)
-    min_len=$(grep "^PASS_MIN_LEN" /etc/login.defs | awk '{print $2}' || true)
-    warn_age=$(grep "^PASS_WARN_AGE" /etc/login.defs | awk '{print $2}' || true)
-
-    if [ "$max_days" -gt 90 ]; then
-        echo "WARNING: PASS_MAX_DAYS is set to $max_days. Consider setting it to 90 or less for better security."
-    elif [ "$max_days" -gt 60 ]; then
-        echo "INFO: PASS_MAX_DAYS is set to $max_days. Consider setting it to 60 or less for enhanced security."
-    else
-        echo "OK: PASS_MAX_DAYS is set to $max_days (90 days or less)."
-    fi
-    echo ""
-
-    if [ "$min_days" -eq 0 ]; then
-        echo "WARNING: PASS_MIN_DAYS is set to $min_days. Set to 1 or more to prevent password cycling."
-    elif [ "$min_days" -lt 14 ]; then
-        echo "INFO: PASS_MIN_DAYS is set to $min_days. Consider setting it to 14 or more for better security."
-    else
-        echo "OK: PASS_MIN_DAYS is set to $min_days (14 days or more)."
-    fi
-    echo ""
-
-    if [ "$min_len" -lt 8 ]; then
-        echo "WARNING: PASS_MIN_LEN is set to $min_len. Consider setting it to 8 or more for stronger passwords."
-    else
-        echo "OK: PASS_MIN_LEN is set to $min_len (8 or more)."
-    fi
-    echo ""
-
-    if [ "$warn_age" -lt 7 ]; then
-        echo "WARNING: PASS_WARN_AGE is set to $warn_age. Consider setting it to 7 or more for better user experience."
-    else
-        echo "OK: PASS_WARN_AGE is set to $warn_age (adequate warning period)."
-    fi
-    echo ""
 }
 
 function check_firewall() {
@@ -205,13 +205,47 @@ function check_firewall() {
     echo ""
 }
 
+function check_unattended_upgrades() {
+    echo "Checking for unattended upgrade tools and their status..."
+    echo ""
+
+    # Check for unattended upgrade tools based on package manager
+    if command -v dpkg >/dev/null 2>&1; then
+        if dpkg -l unattended-upgrades 2>/dev/null  | grep -q "^ii"; then
+            echo "Unattended Upgrades is installed."
+            if grep -q 'APT::Periodic::Unattended-Upgrade "1"' /etc/apt/apt.conf.d/20auto-upgrades 2>/dev/null; then
+                echo "OK: Unattended Upgrades is enabled to automatically install security updates."
+            else
+                echo "WARNING: Unattended Upgrades is installed but not enabled. Consider enabling it to automatically install security updates."
+            fi
+        else
+            echo "INFO: Unattended Upgrades is not installed. Consider installing it to automatically install security updates."
+        fi
+    elif command -v rpm >/dev/null 2>&1; then
+        if rpm -q dnf-automatic >/dev/null 2>&1; then
+            echo "DNF Automatic is installed."
+            if systemctl is-enabled dnf-automatic.timer >/dev/null 2>&1; then
+                echo "OK: DNF Automatic is enabled to automatically install security updates."
+            else
+                echo "WARNING: DNF Automatic is installed but not enabled. Consider enabling it to automatically install security updates."
+            fi
+        else
+            echo "INFO: DNF Automatic is not installed. Consider installing it to automatically install security updates."
+        fi
+    else
+        echo "INFO: Could not determine package manager. Please check for unattended upgrade tools manually."
+    fi
+    echo ""
+}
+
 check_users
-check_ssh_config
-check_capabilities
-check_file_permissions
-check_open_ports
 check_password_policy
+check_ssh_config
+check_file_permissions
+check_capabilities
+check_open_ports
 check_firewall
+check_unattended_upgrades
 
 echo ""
 echo "Check complete."
