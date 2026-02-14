@@ -1,4 +1,4 @@
-# baseline-checker
+# Baselinr
 
 A lightweight Bash utility for auditing basic security configurations on Linux systems. Currently focused on privilege escalation vectors, with plans to expand into a broader baseline assessment tool.
 
