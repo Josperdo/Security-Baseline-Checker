@@ -1,49 +1,62 @@
 # Baselinr
 
-A lightweight Bash utility for auditing basic security configurations on Linux systems. Currently focused on privilege escalation vectors, with plans to expand into a broader baseline assessment tool.
+A lightweight Bash utility for auditing security baseline configurations on Linux systems. Checks privilege escalation vectors, network exposure, system hardening, and patch management across Debian/Ubuntu and RHEL/CentOS distributions.
 
 ## Overview
 
 This script performs automated checks against common security configurations to identify potential misconfigurations or areas of concern. It is intended for use by system administrators and security professionals during routine audits or hardening exercises.
 
-## Current Checks
+## Checks
 
-### Privilege Escalation Vectors
+### User & Access Control
 - Enumerates users with `sudo` group membership
-- Enumerates users with `wheel` group membership (RHEL/CentOS-based distributions)
-- Detects files with Linux capabilities that may present security risks (`getcap`)
+- Enumerates users with `wheel` group membership (RHEL/CentOS)
+- Password policy validation (`PASS_MAX_DAYS`, `PASS_MIN_DAYS`, `PASS_MIN_LEN`, `PASS_WARN_AGE`)
 
 ### SSH Configuration Audit
 - `PermitRootLogin` — checks if root login is explicitly disabled
 - `PasswordAuthentication` — checks if password-based auth is disabled in favor of key-based auth
+- `PermitEmptyPasswords` — verifies empty passwords are not allowed
 - `PubkeyAuthentication` — verifies public key authentication is enabled
 - Reports whether each setting is explicitly configured or using defaults
 
+### System Hardening
+- File permission validation on sensitive files (`/etc/passwd`, `/etc/shadow`, `/etc/group`, `/etc/sudoers`)
+- Detects files with Linux capabilities that may present security risks (`getcap`)
+
+### Network Exposure
+- Enumerates open/listening ports and associated services
+- Firewall status and rule validation (supports `ufw`, `firewalld`, and `iptables`)
+- Checks default firewall policies for dangerous configurations
+
+### Patch Management
+- Detects unattended upgrade configuration (Debian/Ubuntu: `unattended-upgrades`, RHEL/CentOS: `dnf-automatic`)
+- Validates whether automatic security updates are enabled
+
 ## Requirements
 
-- Linux-based operating system
+- Linux-based operating system (Debian/Ubuntu or RHEL/CentOS)
 - Bash 4.0+
-- Read access to `/etc/group` and `/etc/ssh/sshd_config`
-- Root privileges recommended for full capabilities check
+- Root privileges recommended for full results (required for firewall and capabilities checks)
 
 ## Usage
 
 ```bash
 chmod +x security_checker.sh
-./security_checker.sh
+sudo ./security_checker.sh
 ```
 
-## Roadmap
+## Known Limitations
 
-- [x] Sudo/wheel group enumeration
-- [x] File capabilities detection (`getcap`)
-- [x] SSH configuration audit (`PermitRootLogin`, `PasswordAuthentication`, `PubkeyAuthentication`)
-- [x] Additional SSH checks (`PermitEmptyPasswords`, protocol version)
-- [x] File permission checks on sensitive files (`/etc/shadow`, `/etc/passwd`, `/etc/sudoers`)
-- [x] Open port enumeration
-- [x] Password policy review
-- [x] Firewall rule validation (iptables/ufw)
-- [ ] Unattended upgrade / patch status check
+- Firewall checks require root; non-root runs will skip firewall analysis with an informational message
+- SSH checks assume the standard `/etc/ssh/sshd_config` path
+- Password policy reads from `/etc/login.defs` only (does not check PAM modules)
+
+## Future Enhancements
+
+- [ ] Summary report with pass/warn/fail counts
+- [ ] Selective check execution via command-line flags
+- [ ] Exit codes reflecting findings for CI/automation use
 
 ## License
 
