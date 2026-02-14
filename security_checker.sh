@@ -155,12 +155,63 @@ function check_password_policy() {
     echo ""
 }
 
+function check_firewall() {
+    echo "Checking firewall status and rules..."
+    echo ""
+
+    # Firewall checks require root to read rules
+    if [ "$(id -u)" -ne 0 ]; then
+        echo "INFO: Firewall checks require root privileges. Run with sudo for full results."
+        return
+    fi
+
+    # Check which firewall is in use and its status
+    if command -v ufw >/dev/null 2>&1; then
+        echo "UFW detected."
+        if ufw status | grep -q "Status: active"; then
+            # Check default incoming policy
+            if ufw status verbose | grep -q "Default: deny (incoming)"; then
+                echo "OK: UFW is active with default incoming policy set to deny."
+            elif ufw status verbose | grep -q "Default: allow (incoming)"; then
+                echo "WARNING: UFW is active but default incoming policy is allow. Consider changing to deny."
+            fi
+            echo ""
+            echo "Current rules:"
+            ufw status verbose || true
+        elif ufw status | grep -q "Status: inactive"; then
+            echo "WARNING: UFW is installed but inactive. Consider enabling it for better security."
+        else
+            echo "INFO: UFW status could not be determined. Please check manually."
+        fi
+    elif command -v firewall-cmd >/dev/null 2>&1; then
+        echo "firewalld detected."
+        firewall-cmd --state || true
+        echo "Current firewall rules:"
+        firewall-cmd --list-all || true
+    elif command -v iptables >/dev/null 2>&1; then
+        echo "iptables detected."
+        # Check for dangerous default ACCEPT policy first (specific before general)
+        if iptables -L INPUT -n | head -1 | grep -q "policy ACCEPT"; then
+            echo "WARNING: iptables INPUT chain has default ACCEPT policy. Consider changing to DROP and adding explicit allow rules."
+        elif iptables -L INPUT -n | head -1 | grep -q "policy DROP"; then
+            echo "OK: iptables INPUT chain has default DROP policy."
+        fi
+        echo ""
+        echo "Current rules:"
+        iptables -L -n -v || true
+    else
+        echo "WARNING: No common firewall management tool detected (ufw, firewalld, iptables)."
+    fi
+    echo ""
+}
+
 check_users
 check_ssh_config
 check_capabilities
 check_file_permissions
 check_open_ports
 check_password_policy
+check_firewall
 
 echo ""
 echo "Check complete."
