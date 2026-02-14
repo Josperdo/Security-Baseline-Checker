@@ -79,7 +79,7 @@ function check_file_permissions() {
     echo ""
 
     # Check permissions of critical files
-    for file in /etc/passwd /etc/shadow /etc/group; do
+    for file in /etc/passwd /etc/shadow /etc/group /etc/sudoers; do
         if [ -e "$file" ]; then
             perms=$(stat -c "%a %G %U" "$file")
             if [[ "$perms" != "644 root root" && "$file" == "/etc/passwd" ]]; then
@@ -88,6 +88,8 @@ function check_file_permissions() {
                 echo "WARNING: $file has permissions $perms. It should be 640 and owned by shadow:root."
             elif [[ "$perms" != "644 root root" && "$file" == "/etc/group" ]]; then
                 echo "WARNING: $file has permissions $perms. It should be 644 and owned by root:root."
+            elif [[ "$perms" != "440 root root" && "$file" == "/etc/sudoers" ]]; then
+                echo "WARNING: $file has permissions $perms. It should be 440 and owned by root:root."
             else
                 echo "OK: $file has secure permissions ($perms)."
             fi
@@ -98,10 +100,23 @@ function check_file_permissions() {
     echo ""
 }
 
+function check_open_ports() {
+    echo "Checking for open ports and associated services..."
+    echo ""
+
+    # List open ports and associated services
+    if ss -tulnp 2>/dev/null | grep -q LISTEN; then
+        ss -tulnp || true
+    else
+        echo "No listening ports detected."
+    fi
+}
+
 check_users
 check_ssh_config
 check_capabilities
 check_file_permissions
+check_open_ports
 
 echo ""
 echo "Check complete."

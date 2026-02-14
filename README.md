@@ -40,9 +40,9 @@ chmod +x security_checker.sh
 - [x] SSH configuration audit (`PermitRootLogin`, `PasswordAuthentication`, `PubkeyAuthentication`)
 - [x] Additional SSH checks (`PermitEmptyPasswords`, protocol version)
 - [x] File permission checks on sensitive files (`/etc/shadow`, `/etc/passwd`, `/etc/sudoers`)
+- [ ] Open port enumeration
 - [ ] Firewall rule validation (iptables/ufw)
 - [ ] Password policy review
-- [ ] Open port enumeration
 - [ ] Unattended upgrade / patch status check
 
 ## License
